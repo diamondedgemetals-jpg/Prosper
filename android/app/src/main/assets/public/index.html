@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MetalBot</title>
+<style>
+  :root {
+    --bg: #0E1116; --surface: #161B22; --line: #232A34;
+    --text: #E6EAF0; --muted: #8B97A8; --gold: #C9A227;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: max(24px, env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));
+    -webkit-font-smoothing: antialiased;
+  }
+  header { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+  .mark { width: 38px; height: 38px; flex: none; }
+  h1 { font-size: 21px; margin: 0; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; padding: 18px; margin-bottom: 14px;
+  }
+  .card h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .09em;
+             color: var(--muted); margin: 0 0 12px; font-weight: 600; }
+  dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 9px 18px; font-size: 14px; }
+  dt { color: var(--muted); white-space: nowrap; }
+  dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums;
+       font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px;
+       overflow-wrap: anywhere; }
+  .ok { color: var(--gold); }
+  p { color: var(--muted); font-size: 13.5px; margin: 0; }
+  code { background: #0a0d11; border: 1px solid var(--line); border-radius: 5px;
+         padding: 1px 6px; font-size: 12.5px; color: var(--text); }
+</style>
+</head>
+<body>
+  <header>
+    <svg class="mark" viewBox="0 0 108 108" aria-hidden="true">
+      <rect width="108" height="108" rx="24" fill="#0E1116" stroke="#232A34" stroke-width="2"/>
+      <path d="M30 58h14v16H30z" fill="#8B97A8"/>
+      <path d="M48 48h14v26H48z" fill="#8B97A8"/>
+      <path d="M66 36h14v38H66z" fill="#C9A227"/>
+      <path d="M26 74h56v4H26z" fill="#C9A227"/>
+    </svg>
+    <div>
+      <h1>MetalBot</h1>
+      <div class="sub">Diamond Edge Metals &middot; dashboard shell</div>
+    </div>
+  </header>
+
+  <div class="card">
+    <h2>Build</h2>
+    <dl>
+      <dt>Application ID</dt><dd>com.diamondedgemetals.metalbot</dd>
+      <dt>Target SDK</dt><dd>36</dd>
+      <dt>Min SDK</dt><dd>24</dd>
+      <dt>Asset bridge</dt><dd class="ok">connected</dd>
+    </dl>
+  </div>
+
+  <div class="card">
+    <h2>Next step</h2>
+    <p>This placeholder confirms the native shell, asset pipeline and AAB
+    packaging all work end to end. Drop your web build into
+    <code>android/app/src/main/assets/public/</code> to replace it.</p>
+  </div>
+
+  <script>
+    // Proves JS execution and a real (non-file://) origin, which is what
+    // localStorage and fetch need in the packaged app.
+    try {
+      localStorage.setItem('metalbot.probe', String(Date.now()));
+      if (localStorage.getItem('metalbot.probe')) {
+        document.querySelectorAll('dd')[3].textContent = 'connected · storage ok';
+      }
+    } catch (e) { /* storage unavailable; shell still renders */ }
+  </script>
+</body>
+</html>

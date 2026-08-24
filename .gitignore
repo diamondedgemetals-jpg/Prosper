@@ -22,3 +22,12 @@ out/
 
 # Misc
 *.log
+
+# Signing material - never commit these
+*.jks
+*.keystore
+keystore.properties
+
+# Node / web build
+node_modules/
+dist/

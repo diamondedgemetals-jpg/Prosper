@@ -1,0 +1,6 @@
+<resources>
+    <color name="metal_background">#0E1116</color>
+    <color name="metal_surface">#161B22</color>
+    <color name="metal_accent">#C9A227</color>
+    <color name="ic_launcher_background">#0E1116</color>
+</resources>

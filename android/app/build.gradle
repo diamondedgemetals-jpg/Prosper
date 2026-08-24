@@ -2,26 +2,34 @@ plugins {
     id 'com.android.application'
 }
 
+// Release signing is driven entirely by environment variables so that no secret
+// material lives in the repo. When they are absent (a local or CI debug build)
+// the release variant is simply left unsigned instead of failing to configure.
+def keystorePath = System.getenv("KEYSTORE_PATH")
+def hasReleaseKeystore = keystorePath != null && !keystorePath.isEmpty() && file(keystorePath).exists()
+
 android {
-    namespace 'com.diamondedgemetals.prosper'
-    compileSdk 34
+    namespace 'com.diamondedgemetals.metalbot'
+    compileSdk 36
 
     defaultConfig {
-        applicationId "com.diamondedgemetals.prosper"
+        applicationId "com.diamondedgemetals.metalbot"
         minSdk 24
-        targetSdk 34
-        versionCode 1
-        versionName "1.0.0"
+        targetSdk 36
+        versionCode(System.getenv("VERSION_CODE") ? System.getenv("VERSION_CODE").toInteger() : 1)
+        versionName System.getenv("VERSION_NAME") ?: "1.0.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
-        release {
-            storeFile file("$System.env.KEYSTORE_PATH")
-            storePassword System.env.KEYSTORE_PASSWORD
-            keyAlias System.env.KEY_ALIAS
-            keyPassword System.env.KEY_PASSWORD
+        if (hasReleaseKeystore) {
+            release {
+                storeFile file(keystorePath)
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD")
+            }
         }
     }
 
@@ -29,21 +37,25 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
+            if (hasReleaseKeystore) {
+                signingConfig signingConfigs.release
+            }
         }
     }
+
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.10.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
+    implementation 'androidx.webkit:webkit:1.12.1'
+
     testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 }

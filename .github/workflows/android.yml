@@ -1,0 +1,70 @@
+name: Android
+
+on:
+  push:
+    branches: [main, 'claude/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bundle:
+    name: Build AAB
+    runs-on: ubuntu-latest
+
+    env:
+      # Release signing. Absent secrets simply produce an unsigned bundle
+      # rather than failing the build, so forks and PRs still get coverage.
+      KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      # Play requires a strictly increasing versionCode per upload.
+      VERSION_CODE: ${{ github.run_number }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install SDK packages
+        run: sdkmanager "platforms;android-36" "build-tools;36.1.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Decode upload keystore
+        if: env.KEYSTORE_BASE64 != ''
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          echo "KEYSTORE_PATH=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
+
+      - name: Build release bundle
+        working-directory: android
+        run: ./gradlew bundleRelease --stacktrace
+
+      - name: Report signing status
+        run: |
+          AAB=android/app/build/outputs/bundle/release/app-release.aab
+          if unzip -l "$AAB" | grep -qE 'META-INF/.*\.(RSA|DSA|EC)'; then
+            echo "### Signed release bundle (versionCode ${VERSION_CODE})" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "### Unsigned bundle - set KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS and KEY_PASSWORD to sign" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: metalbot-aab-${{ github.run_number }}
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
